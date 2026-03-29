@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Unit Recap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --phone-case: #2d3436;
+            --screen-bg: #f0f2f5;
+            --msg-teacher: #6c5ce7;
+            --msg-student: #0084ff;
+            --msg-bg: #ffffff;
+            --accent: #ff7675;
+        }
+
+        body {
+            margin: 0; padding: 10px; font-family: 'Nunito', sans-serif;
+            background: #dfe6e9; display: flex; align-items: center;
+            justify-content: center; min-height: 100vh;
+        }
+
+        .smartphone {
+            width: 300px; height: 540px; background: var(--phone-case);
+            border-radius: 35px; padding: 10px; box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            position: relative; border: 3px solid #b2bec3;
+        }
+
+        .screen {
+            width: 100%; height: 100%; background: var(--screen-bg);
+            border-radius: 25px; overflow: hidden; display: flex; flex-direction: column;
+        }
+
+        .status-bar { height: 20px; padding: 5px 15px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+
+        #lock-screen {
+            flex: 1; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white; cursor: pointer; text-align: center; padding: 20px;
+        }
+
+        #chat-screen { display: none; flex: 1; flex-direction: column; padding: 10px; overflow: hidden; }
+        .chat-header { text-align: center; font-weight: 900; color: var(--msg-teacher); margin-bottom: 8px; font-size: 14px; }
+        
+        #message-container { flex: 1; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 10px; }
+
+        .bubble {
+            max-width: 85%; padding: 8px 12px; border-radius: 15px 15px 15px 4px;
+            margin-bottom: 8px; font-size: 14px; line-height: 1.3;
+            background: var(--msg-bg); box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            animation: pop 0.3s ease-out;
+        }
+
+        .bubble-student {
+            align-self: flex-end; background: var(--msg-student); color: white;
+            border-radius: 15px 15px 4px 15px; margin-left: 10%;
+        }
+
+        @keyframes pop { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .mission-bubble { border-left: 4px solid var(--msg-teacher); }
+        .action-tag { color: var(--accent); font-weight: 900; font-size: 10px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+
+        #controls { padding-top: 5px; }
+        button {
+            width: 100%; padding: 10px; border: none; border-radius: 12px;
+            font-family: 'Nunito'; font-weight: 800; cursor: pointer; margin-bottom: 6px; font-size: 14px;
+        }
+        .btn-reply { background: var(--msg-student); color: white; display: none; }
+        .btn-next { background: var(--msg-teacher); color: white; display: none; }
+        .btn-finish { background: #2d3436; color: white; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="smartphone">
+        <div class="screen">
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
+
+            <div id="lock-screen" onclick="startRevision()">
+                <div style="font-size: 40px; margin-bottom: 10px;">📱</div>
+                <h3 style="margin: 0; font-weight: 900;">UNIT RECAP</h3>
+                <p style="font-size: 13px;">Tap to start</p>
+            </div>
+
+            <div id="chat-screen">
+                <div class="chat-header">Unit Mission Control</div>
+                <div id="message-container"></div>
+
+                <div id="controls">
+                    <button class="btn-reply" id="replyBtn" onclick="handleReply()">Reply ↩️</button>
+                    <button class="btn-next" id="nextBtn" onclick="nextMission()">Next Message ➡️</button>
+                    <button class="btn-finish" id="finishBtn" onclick="location.reload()">Finish & Exit</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const missions = [
+            { 
+                action: "Vocabulary", 
+                title: "💎 7 Lucky Words", 
+                text: "What are your 7 lucky words from this Unit? Say them out loud!", 
+                reply: "My 7 lucky words are: ..." 
+            },
+            { 
+                action: "Grammar", 
+                title: "💬 Sentence Code", 
+                text: "Use the new grammar rules. Write 2 or 3 sentences about your life!", 
+                reply: "I ..." 
+            },
+            { 
+                action: "Reading", 
+                title: "📖 Story Recap", 
+                text: "Think about the story from this Unit. What is it about?", 
+                reply: "The story is about ..." 
+            },
+            { 
+                action: "Opinion", 
+                title: "❤️ Likes & Dislikes", 
+                text: "What is fun and what is boring in this Unit?", 
+                reply: "I like ... but I don't like ...because ..." 
+            },
+            { 
+                action: "Creative", 
+                title: "🎭 Character Voice", 
+                text: "Imagine you are a character from this Unit. Talk about yourself!", 
+                reply: "Hello! I am ... and I ..." 
+            },
+            { 
+                action: "Self-Check", 
+                title: "🔋 Battery Level", 
+                text: "How ready are you for the test? Is your battery 100% or 20%? Why?", 
+                reply: "My battery is ...% because ..." 
+            }
+        ];
+
+        let step = 0;
+
+        function startRevision() {
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('chat-screen').style.display = 'flex';
+            addMessage("teacher", "Hi! Ready to recap the unit? Let's go! 🚀");
+            setTimeout(showMission, 800);
+        }
+
+        function addMessage(type, text) {
+            const container = document.getElementById('message-container');
+            const div = document.createElement('div');
+            div.className = type === "teacher" ? "bubble" : "bubble bubble-student";
+            
+            if (type === "mission") {
+                const m = missions[step];
+                div.className = "bubble mission-bubble";
+                div.innerHTML = `<span class="action-tag">${m.action}</span><strong>${m.title}</strong><p style="margin:3px 0 0 0">${m.text}</p>`;
+            } else { div.innerText = text; }
+
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showMission() {
+            if (step < missions.length) {
+                addMessage("mission");
+                document.getElementById('replyBtn').style.display = 'block';
+                document.getElementById('nextBtn').style.display = 'none';
+            } else {
+    addMessage("teacher", "Missions completed! 🌟 Have a rest now. See you soon!");
+    document.getElementById('finishBtn').style.display = 'block';
+    document.getElementById('nextBtn').style.display = 'none';
+}
+        }
+
+        function handleReply() {
+            addMessage("student", missions[step].reply);
+            document.getElementById('replyBtn').style.display = 'none';
+            document.getElementById('nextBtn').style.display = 'block';
+        }
+
+        function nextMission() {
+            step++;
+            showMission();
+        }
+    </script>
+</body>
+</html>
